@@ -26,6 +26,7 @@
 #include <LittleFS.h>
 #include <time.h>
 #include <user_interface.h>
+#include <cont.h>
 
 
 extern "C" {

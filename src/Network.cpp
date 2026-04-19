@@ -26,7 +26,7 @@ extern const char *__COMPILED_GIT_HASH__;
 void NetworkClass::init(bool apMode)
 {
     WiFi.persistent(false);
-    WiFi.disconnect(true, true);
+    WiFi.disconnect(true);
     _isConnected = false;
     _continuousConnectionErrors = 0;
 
@@ -85,6 +85,12 @@ void NetworkClass::onStationModeGotIP(_networkEvent_t& nwevent)
     LOG_DP("WiFi NetworkClass::onStationModeGotIP() start");
     _isConnected = true;
     _tickerReconnect.detach();
+
+    // ESP8266 bug: static-IP DNS gets reset by the WiFi driver after connect.
+    // Re-apply WiFi.config() here to restore the configured nameserver.
+    if (!_configWifi.dhcp) {
+        WiFi.config(_configWifi.ip_static, _configWifi.ip_gateway, _configWifi.ip_netmask, _configWifi.ip_nameserver, _configWifi.ip_nameserver);
+    }
 
     if (_continuousConnectionErrors > NETWORK_LOG_MAX_CONNECTION_ATTEMPS) {
         LOGF_IP("WiFi connected to %s channel %" PRId8 " with local IP " PRsIP " after %u failed connection attempts.", WiFi.SSID().c_str(), WiFi.channel(), PRIPVal(WiFi.localIP()), _continuousConnectionErrors);
